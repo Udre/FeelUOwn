@@ -20,6 +20,55 @@ from .utils import parse_ms
 logger = logging.getLogger(__name__)
 
 
+# TODO: 这一部分代码可能需要换个位置
+def get_colors_ctx(theme):
+    return {
+        'background': theme.background.name(),
+        'background_light': theme.background_light.name(),
+        'foreground': theme.foreground.name(),
+        'foreground_light': theme.foreground_light.name(),
+        'color0': theme.color0.name(),
+        'color1': theme.color1.name(),
+        'color2': theme.color2.name(),
+        'color3': theme.color3.name(),
+        'color4': theme.color4.name(),
+        'color5': theme.color5.name(),
+        'color6': theme.color6.name(),
+        'color7': theme.color7.name(),
+        'color0_light': theme.color0_light.name(),
+        'color1_light': theme.color1_light.name(),
+        'color2_light': theme.color2_light.name(),
+        'color3_light': theme.color3_light.name(),
+        'color4_light': theme.color4_light.name(),
+        'color5_light': theme.color5_light.name(),
+        'color6_light': theme.color6_light.name(),
+        'color7_light': theme.color7_light.name(),
+    }
+
+
+class BasicButton(FButton):
+    def __init__(self, app, object_name, style_str_fmt='', text=None, parent=None):
+        super().__init__(text, parent)
+        self._app = app
+        self._style_str_fmt = style_str_fmt
+        self.setObjectName(object_name)
+        self.set_theme_style()
+
+    def set_theme_style(self):
+        theme = self._app.theme_manager.current_theme
+        colors_ctx = get_colors_ctx(theme)
+        ctx = {'object_name': self.objectName()}
+        ctx.update(colors_ctx)
+        style_str = self._style_str_fmt.format(**ctx)
+        self.setStyleSheet(style_str)
+
+
+def create_button(app, object_name, style_str_fmt='', text=None, parent=None):
+    theme = app.theme_manager.current_theme
+    btn = BasicButton(app, object_name, style_str_fmt, text, parent)
+    return btn
+
+
 class PlayerControlButton(FButton):
     def __init__(self, app, text=None, parent=None):
         super().__init__(text, parent)
@@ -125,6 +174,25 @@ class PlayerControlPanel(FFrame):
         self.song_title_label = SongLabel(self._app, parent=self)
         self.progress_slider = ProgressSlider(self._app, self)
         self.pms_btn = PlaybackModeSwitchBtn(self._app, self)
+        song_wiki_btn_style_str_fmt = '''
+            #{object_name} {{
+                background: {color6};
+                color: {background};
+                border: 0px;
+                border-radius: 1px;
+                padding: 0px 4px;
+            }}
+            #{object_name}:hover {{
+                color: {color2};
+            }}
+        '''
+        self.song_wiki_btn = create_button(
+            self._app,
+            object_name='song_wiki_btn',
+            style_str_fmt=song_wiki_btn_style_str_fmt,
+            text='📰 八卦',
+            parent=self
+        )
 
         self.volume_slider = VolumeSlider(self._app, self)
         self.progress_label = ProgressLabel(self._app, '00:00/00:00', self)
@@ -169,11 +237,17 @@ class PlayerControlPanel(FFrame):
         self._sc_layout.addSpacing(5)
         self._sc_layout.addWidget(self.volume_slider)
 
+        self._grid_sub_h_layout = FHBoxLayout()
         self._sub_layout.setSpacing(0)
         self._sub_layout.setContentsMargins(0, 0, 0, 0)
         self._sub_layout.addWidget(self.song_title_label, 0, 0, 1, -1)
         self._sub_layout.setRowStretch(0, 1)
-        self._sub_layout.addWidget(self.pms_btn, 0, 1, Qt.AlignRight)
+        self._sub_layout.addLayout(self._grid_sub_h_layout, 0, 1, Qt.AlignRight)
+        self._grid_sub_h_layout.addWidget(self.song_wiki_btn)
+        self._grid_sub_h_layout.addSpacing(5)
+        self._grid_sub_h_layout.addWidget(self.pms_btn)
+        # self._sub_layout.addWidget(self.song_wiki_btn, 0, 1, Qt.AlignRight)
+        # self._sub_layout.addWidget(self.pms_btn, 0, 1, Qt.AlignRight)
         self._sub_layout.addWidget(self.progress_slider, 1, 0, 2, -1, Qt.AlignLeft)
 
         self._layout.addWidget(self._btn_container)
