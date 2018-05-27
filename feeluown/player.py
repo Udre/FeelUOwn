@@ -4,6 +4,7 @@ import asyncio
 import locale
 import logging
 import random
+import time
 
 from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -93,7 +94,8 @@ class Player(QObject):
 
     def on_position_changed(self, *args, **kwargs):
         self.positionChanged.emit(self.player.position * 1000)
-
+        time.sleep(1)
+		
     def on_duration_changed(self, *args, **kwags):
         self.duration_changed.emit(self.player.duration * 1000)
 
